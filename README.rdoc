@@ -1,0 +1,7 @@
+= superfeedr-ruby
+
+Description goes here.
+
+== Copyright
+
+Copyright (c) 2009 julien. See LICENSE for details.
