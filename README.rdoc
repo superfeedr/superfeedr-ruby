@@ -14,8 +14,7 @@ Superfeedr.com:http://superfeedr.com is a Real-time Cloud Feed Parsing service
 
 == Example ==
 
-<script src="http://gist.github.com/110247.js"></script>
-
+Please see this "Gist":http://gist.github.com/110247 while I am trying to find a way to integrate it into this document ;)
 
 
 == Copyright
