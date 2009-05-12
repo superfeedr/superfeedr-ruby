@@ -4,14 +4,19 @@ require 'rake'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
+    config = YAML.load(File.read('VERSION.yml'))
+    version = "#{config[:major]}.#{config[:minor]}.#{config[:patch]}"
     gem.name = "superfeedr-ruby"
+    gem.version = "#{version}"
     gem.summary = %Q{Ruby Client for the Superfeedr}
     gem.email = "julien.genestoux@gmail.com"
     gem.homepage = "http://github.com/julien51/superfeedr-ruby"
-    gem.authors = ["julien"]
+    gem.authors = ["julien Genestoux"]
     gem.rubyforge_project = "superfeedr-ruby"
-  
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.add_dependency('babylon')
+    gem.has_rdoc = true
+    gem.homepage = 'http://github.com/julien51/superfeedr-ruby/'
+    gem.files =  FileList["[A-Z]*", "{bin,generators,lib,test,spec}/**/*"]
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
@@ -60,11 +65,11 @@ begin
         config = YAML.load(
             File.read(File.expand_path('~/.rubyforge/user-config.yml'))
         )
-
+        
         host = "#{config['username']}@rubyforge.org"
         remote_dir = "/var/www/gforge-projects/superfeedr-ruby/"
         local_dir = 'rdoc'
-
+        
         Rake::SshDirPublisher.new(host, remote_dir, local_dir).upload
       end
     end
