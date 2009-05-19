@@ -52,42 +52,67 @@ module Superfeedr
   end
   
   ##
-  # Subscribe to a feed. The block passed in argument will be called upon success. The block will take one boolen argument  : true means everything went right... false means something failed! (Please set Babylon's log to Log4r::INFO for more info)
+  # Subscribe to a feed. The block passed in argument will be called upon success. 
+  # The block will take one boolen argument : true means everything went right... false means something failed! 
+  # (Please set Babylon's log to Log4r::INFO for more info)
   def self.subscribe(feed_url, &block)
     raise NotConnected unless connection
     stanza = SubscribeQueryStanza.new({:node => feed_url, :from => connection.jid})
-    @@callbacks[stanza.id] = Proc.new { |stanza|
-      block.call(stanza["type"] == "result")
-    }
+    @@callbacks[stanza.id] = Hash.new
+    @@callbacks[stanza.id][:method] = method(:on_subscribe)
+    @@callbacks[stanza.id][:param] = block
     send(stanza)
   end
   
   ## 
-  # Unsubscribe from a feed. The block passed in argument will be called upon success. The block will take one boolen argument  : true means everything went right... false means something failed! (Please set Babylon's log to Log4r::INFO for more info)
+  # Unsubscribe from a feed. The block passed in argument will be called upon success. 
+  # The block will take one boolen argument  : true means everything went right... false means something failed! 
+  # (Please set Babylon's log to Log4r::INFO for more info)
   def self.unsubscribe(feed_url, &block)
     raise NotConnected unless connection
     stanza = UnsubscribeQueryStanza.new({:node => feed_url, :from => connection.jid})
-    @@callbacks[stanza.id] = Proc.new { |stanza|
-      block.call(stanza["type"] == "result")
-    }
+    @@callbacks[stanza.id] = Hash.new
+    @@callbacks[stanza.id][:method] = method(:on_unsubscribe)
+    @@callbacks[stanza.id][:param] = block
     send(stanza)
   end
   
   ##
-  # Lists the subscriptions by page. The block passed in argument will be called with 2 arguments : the page, and an array of the feed's url in the page you requested. (Currently the Superfeedr API only supports 30 feeds per page.)
+  # Lists the subscriptions by page. The block passed in argument will be called with 2 arguments : the page, 
+  # and an array of the feed's url in the page you requested. 
+  # (Currently the Superfeedr API only supports 30 feeds per page.)
   def self.subscriptions(page = 1, &block)
     raise NotConnected unless connection
     stanza = SubscriptionsQueryStanza.new({:page => page, :from => connection.jid})
-    @@callbacks[stanza.id] = Proc.new { |stanza|
-      block.call(stanza.at("subscriptions")["page"].to_i, stanza.search("subscription").map { |s| s["node"] })
-    }
+    @@callbacks[stanza.id] = Hash.new
+    @@callbacks[stanza.id][:method] = method(:on_subscriptions)
+    @@callbacks[stanza.id][:param] = block
     send(stanza)
   end
   
   ##
-  # Specifies the block that will be called upon notification. Your block should take a NotificationStanza instance argument.
+  # Specifies the block that will be called upon notification. 
+  # Your block should take a NotificationStanza instance argument.
   def self.on_notification(&block)
     @@notication_callback = block
+  end
+  
+  ##
+  # Called with a response to a subscriptions listing
+  def self.on_subscriptions(stanza, &block)
+    block.call(stanza.at("subscriptions")["page"].to_i, stanza.search("subscription").map { |s| s["node"] })
+  end
+  
+  ##
+  # Called with a response to a subscribe
+  def self.on_subscribe(stanza, &block)
+    block.call(stanza["type"] == "result")
+  end
+  
+  ##
+  # Called with a response to an unsubscribe.
+  def self.on_unsubscribe(stanza, &block)
+    block.call(stanza["type"] == "result")
   end
   
   ##
@@ -125,7 +150,7 @@ module Superfeedr
   # This shall not be called by your application. It is called upon stanza recetion. If it is a reply to a stanza we sent earlier, then, we just call it's associated callback. If it is a notification stanza, then, we call the notification callback (that you should have given when calling Superfeedr.connect) with a NotificationStanza instance.
   def self.on_stanza(stanza)
     if stanza["id"] && @@callbacks[stanza["id"]]
-      @@callbacks[stanza["id"]].call(stanza)
+      @@callbacks[stanza["id"]][:method].call(stanza, &@@callbacks[stanza["id"]][:param])
       @@callbacks.delete(stanza["id"])
     elsif stanza.name == "message" and stanza.at("event")["xmlns"] == "http://jabber.org/protocol/pubsub#event"
       @@notication_callback.call(NotificationStanza.new(stanza))

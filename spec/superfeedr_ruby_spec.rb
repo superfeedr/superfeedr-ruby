@@ -37,12 +37,9 @@ describe Superfeedr do
     end
     
     it "should add a Proc that just calls the block in params to the @@callbacks" do
-      callback = Proc.new {
-        
-      }
-      Proc.should_receive(:new).and_return(callback)
       Superfeedr.subscribe(@node, &@block)
-      Superfeedr.callbacks[@mock_stanza.id].should == callback
+      Superfeedr.callbacks[@mock_stanza.id][:method].should == Superfeedr.method(:on_subscribe)
+      Superfeedr.callbacks[@mock_stanza.id][:param].should == @block
     end
     
     it "should send the stanza"  do
@@ -76,12 +73,9 @@ describe Superfeedr do
     end
     
     it "should add a Proc that just calls the block in params to the @@callbacks" do
-      callback = Proc.new {
-        
-      }
-      Proc.should_receive(:new).and_return(callback)
       Superfeedr.unsubscribe(@node, &@block)
-      Superfeedr.callbacks[@mock_stanza.id].should == callback
+      Superfeedr.callbacks[@mock_stanza.id][:method].should == Superfeedr.method(:on_unsubscribe)
+      Superfeedr.callbacks[@mock_stanza.id][:param].should == @block
     end
     
     it "should send the stanza"  do
@@ -115,18 +109,86 @@ describe Superfeedr do
     end
     
     it "should add a Proc that just calls the block in params to the @@callbacks" do
-      callback = Proc.new {
-        
-      }
-      Proc.should_receive(:new).and_return(callback)
       Superfeedr.subscriptions(@page, &@block)
-      Superfeedr.callbacks[@mock_stanza.id].should == callback
+      Superfeedr.callbacks[@mock_stanza.id][:method].should == Superfeedr.method(:on_subscriptions)
+      Superfeedr.callbacks[@mock_stanza.id][:param].should == @block
+      
     end
     
     it "should send the stanza"  do
       Superfeedr.should_receive(:send).with(@mock_stanza).and_return(true)
       Superfeedr.subscriptions(@page, &@block)
     end
+  end
+  
+  
+  describe "on_subscribe" do
+    it "should call the block with true if the stanza type is 'result'" do
+      xml = <<-EOXML
+      <iq from='firehoser.superfeedr.com' to='demo@superfeedr.com/babylon_client_7814' type='result' id='409'>
+        <pubsub xmlns='http://jabber.org/protocol/pubsub'>
+          <subscription subscription='subscribed' node='http://columbiapartnership.typepad.com/the_columbia_partnership/atom.xml' jid='demo@superfeedr.com'/>
+        </pubsub>
+EOXML
+      stanza = Nokogiri::XML(xml) 
+      Superfeedr.on_subscribe(stanza.root) do |res|
+        res.should be_true
+      end
+    end
+    
+    it "should call the block with false if the stanza type is not 'result'" do
+      xml = <<-EOXML
+      <iq from='firehoser.superfeedr.com' to='demo@superfeedr.com/babylon_client_7814' type='error' id='409'>
+EOXML
+      stanza = Nokogiri::XML(xml) 
+      Superfeedr.on_subscribe(stanza.root) do |res|
+        res.should be_false
+      end
+    end
+    
+  end
+  
+  describe "on_unsubscribe" do
+    it "should call the block with true if the stanza type is 'result'" do
+      xml = <<-EOXML
+      <iq from='firehoser.superfeedr.com' to='demo@superfeedr.com/babylon_client_7814' type='result' id='260'/>
+      EOXML
+      stanza = Nokogiri::XML(xml) 
+      Superfeedr.on_unsubscribe(stanza.root) do |res|
+        res.should be_true
+      end
+    end
+    
+    it "should call the block with false if the stanza type is not 'result'" do
+      xml = <<-EOXML
+      <iq from='firehoser.superfeedr.com' to='demo@superfeedr.com/babylon_client_7814' type='error' id='260'/>
+      EOXML
+      stanza = Nokogiri::XML(xml) 
+      Superfeedr.on_unsubscribe(stanza.root) do |res|
+        res.should be_false
+      end
+    end
+  end
+  
+  describe "on_subscriptions" do
+    it "should call the block with the page number and the list of feeds as an array" do
+      xml = <<-EOXML
+      <iq type="result" to="you@superfeedr.com/home" id="subman1" from="firehoser.superfeedr.com">
+        <pubsub>
+          <subscriptions page="3">
+            <subscription node="http://domain.tld/path/to/a/feed/atom.xml" subscription="subscribed" jid="you@superfeedr.com" />
+            <subscription node="http://domain2.tld/path/to/feed.rss" subscription="subscribed" jid="you@superfeedr.com" />
+          </subscriptions>
+        </pubsub>
+      </iq>
+      EOXML
+      stanza = Nokogiri::XML(xml) 
+      Superfeedr.on_subscriptions(stanza.root) do |page, subscriptions|
+        page.should == 3
+        subscriptions.should == ["http://domain.tld/path/to/a/feed/atom.xml", "http://domain2.tld/path/to/feed.rss"] 
+      end
+    end
+    
   end
   
 end
