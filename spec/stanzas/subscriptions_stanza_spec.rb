@@ -8,7 +8,7 @@ describe SubscriptionsQueryStanza do
     @params = { :type => "set", :from => "me@server.com/resource", :page => 3, :type => "set", :from => "me@server.com/resource"}
   end
   
-  it "should have the right node value" do
+  it "should have the right page value" do
     SubscriptionsQueryStanza.new(@params).page.should == @params[:page].to_s
   end
   

@@ -100,7 +100,9 @@ module Superfeedr
   ##
   # Called with a response to a subscriptions listing
   def self.on_subscriptions(stanza, &block)
-    block.call(stanza.at("subscriptions")["page"].to_i, stanza.search("subscription").map { |s| s["node"] })
+    page = stanza.xpath('//xmlns:subscriptions', { 'xmlns' => 'http://jabber.org/protocol/pubsub' }).first["page"].to_i
+    feeds = stanza.xpath('//xmlns:subscription', { 'xmlns' => 'http://jabber.org/protocol/pubsub' }).map { |s| s["node"] }
+    block.call(page, feeds)
   end
   
   ##

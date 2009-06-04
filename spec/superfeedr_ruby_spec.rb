@@ -125,11 +125,12 @@ describe Superfeedr do
   describe "on_subscribe" do
     it "should call the block with true if the stanza type is 'result'" do
       xml = <<-EOXML
-      <iq from='firehoser.superfeedr.com' to='demo@superfeedr.com/babylon_client_7814' type='result' id='409'>
-        <pubsub xmlns='http://jabber.org/protocol/pubsub'>
-          <subscription subscription='subscribed' node='http://columbiapartnership.typepad.com/the_columbia_partnership/atom.xml' jid='demo@superfeedr.com'/>
+      <iq type="result" to="you@superfeedr.com/home" from="firehoser.superfeedr.com" id="sub1">
+        <pubsub xmlns="http://jabber.org/protocol/pubsub">
+          <subscription jid="you@superfeedr.com" subscription="subscribed" node="http://domain.tld/path/to/feed.xml"/>
         </pubsub>
-EOXML
+      </iq>
+      EOXML
       stanza = Nokogiri::XML(xml) 
       Superfeedr.on_subscribe(stanza.root) do |res|
         res.should be_true
@@ -138,7 +139,11 @@ EOXML
     
     it "should call the block with false if the stanza type is not 'result'" do
       xml = <<-EOXML
-      <iq from='firehoser.superfeedr.com' to='demo@superfeedr.com/babylon_client_7814' type='error' id='409'>
+      <iq type="error" to="you@superfeedr.com/home" from="firehoser.superfeedr.com" id="sub1">
+        <pubsub xmlns="http://jabber.org/protocol/pubsub">
+          <subscription jid="you@superfeedr.com" subscription="subscribed" node="http://domain.tld/path/to/feed.xml"/>
+        </pubsub>
+      </iq>
 EOXML
       stanza = Nokogiri::XML(xml) 
       Superfeedr.on_subscribe(stanza.root) do |res|
@@ -151,7 +156,7 @@ EOXML
   describe "on_unsubscribe" do
     it "should call the block with true if the stanza type is 'result'" do
       xml = <<-EOXML
-      <iq from='firehoser.superfeedr.com' to='demo@superfeedr.com/babylon_client_7814' type='result' id='260'/>
+        <iq type='result' from='firehoser.superfeedr.com' to='you@superfeedr.com/home' id='unsub1' />
       EOXML
       stanza = Nokogiri::XML(xml) 
       Superfeedr.on_unsubscribe(stanza.root) do |res|
@@ -161,7 +166,7 @@ EOXML
     
     it "should call the block with false if the stanza type is not 'result'" do
       xml = <<-EOXML
-      <iq from='firehoser.superfeedr.com' to='demo@superfeedr.com/babylon_client_7814' type='error' id='260'/>
+        <iq type='error' from='firehoser.superfeedr.com' to='you@superfeedr.com/home' id='unsub1' />
       EOXML
       stanza = Nokogiri::XML(xml) 
       Superfeedr.on_unsubscribe(stanza.root) do |res|
@@ -174,8 +179,8 @@ EOXML
     it "should call the block with the page number and the list of feeds as an array" do
       xml = <<-EOXML
       <iq type="result" to="you@superfeedr.com/home" id="subman1" from="firehoser.superfeedr.com">
-        <pubsub>
-          <subscriptions page="3">
+        <pubsub xmlns="http://jabber.org/protocol/pubsub" xmlns:superfeedr="http://superfeedr.com/xmpp-pubsub-ext" >
+          <subscriptions superfeedr:page="3">
             <subscription node="http://domain.tld/path/to/a/feed/atom.xml" subscription="subscribed" jid="you@superfeedr.com" />
             <subscription node="http://domain2.tld/path/to/feed.rss" subscription="subscribed" jid="you@superfeedr.com" />
           </subscriptions>

@@ -2,20 +2,67 @@
 
 Yes, the gem is called superfeedr-ruby, but the library is superfeedr only ;)
 
-Superfeedr.com:http://superfeedr.com is a Real-time Cloud Feed Parsing service
+{Superfeedr.com}[http://superfeedr.com] is a Real-time Cloud Feed Parsing service
 
 * *Realtime* : By combining different technologies we can notify you of new entries in less than 15 minutes (or it's free)
-* *No* *more* polling* : Stop wasting your time and resources fetching 'old data', and stop being late when there is new data.
+* *No* *more* *polling* : Stop wasting your time and resources fetching 'old data', and stop being late when there is new data.
 * *Simplicity* : give us urls, and we'll do the rest. Check our docs and tutorials.
 * *Standardization* : No more nightmares with gazillions of formats, we will send you strict ATOM, whatever the original feed format is.
 * *Multi*-*channel* : receive the notifications by XMPP, on a local JID or your own external JID, or using WebHooks.
 * *Cost* *saving* : we will match the cost of your existing system.
 
+== FEATURES:
+
+* Subscribe to a feed
+
+    Superfeedr.subscribe("http://github.com/superfeedr.atom") do |result|
+        puts "Yay, subscribed to the github Atom feed for Superfeedr" if result
+    end
+      
+* Unsubscribe from a feed
+    
+    Superfeedr.unsubscribe("http://github.com/superfeedr.atom") do |result|
+        puts "Sad, you unsubscribed from the github Atom feed for Superfeedr" if result
+    end
+
+* List subscriptions by page
+    
+    Superfeedr.subscriptions(5) do |page, feeds|
+        puts "On page #{page}" : 
+        puts feeds.inspect
+      end
+
+* Recceive notifications 
+
+    Superfeedr.on_notification do |notification|
+        puts "The feed #{notification.feed_url} has been fetched (#{notification.http_status}: #{notification.message_status}) and will be fetched again in #{(notification.next_fetch - Time.now)/60} minutes."
+        notification.entries.each do |e|
+            puts " - #{e.title} (#{e.link}) was published (#{e.published}) with #{e.unique_id} as unique id : \n #{e.summary} (#{e.chunk}/#{e.chunks})"
+        end
+    end
+
+== Install ==
+
+Install the gem from Github :
+
+    gem sources -a http://gems.github.com
+    sudo gem install superfeedr-superfeedr-ruby
+
+Source : 
+    
+    git clone git@github.com:superfeedr/superfeedr-ruby.git  
+
 
 == Example ==
 
-Please see this "Gist":http://gist.github.com/110247 while I am trying to find a way to integrate it into this document ;)
+Please see this {Gist}[http://gist.github.com/110247] while I am trying to find a way to integrate it into this document ;)
 
+
+== REQUIREMENTS:
+
+{Babylon}[http://github.com/julien51/babylon/tree/master] : please note that there are 2 gems named Baylon. The one you want is the one about XMPP, you can get it with :
+    
+    sudo gem install babylon-julien51
 
 == Copyright
 

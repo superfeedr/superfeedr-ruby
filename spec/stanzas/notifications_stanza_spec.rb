@@ -5,7 +5,7 @@ describe NotificationStanza do
     xml = <<-EOXML
     <message from='firehoser.superfeedr.com' to='you@superfeedr.com'>
       <event xmlns='http://jabber.org/protocol/pubsub#event'>
-        <status feed="http://domain.tld/path/to/feed.xml">
+        <status feed="http://domain.tld/path/to/feed.xml" xmlns:superfeedr='http://superfeedr.com/xmpp-pubsub-ext'>
           <http code="200">9718 bytes fetched in 1.462708s : 2 new entries.</http>
           <next_fetch>2009-05-10T11:19:38-07:00</next_fetch>
         </status>
