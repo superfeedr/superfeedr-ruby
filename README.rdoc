@@ -32,7 +32,7 @@ Yes, the gem is called superfeedr-ruby, but the library is superfeedr only ;)
         puts feeds.inspect
       end
 
-* Recceive notifications 
+* Receive notifications 
 
     Superfeedr.on_notification do |notification|
         puts "The feed #{notification.feed_url} has been fetched (#{notification.http_status}: #{notification.message_status}) and will be fetched again in #{(notification.next_fetch - Time.now)/60} minutes."
@@ -41,7 +41,7 @@ Yes, the gem is called superfeedr-ruby, but the library is superfeedr only ;)
         end
     end
 
-== Install ==
+== Install
 
 Install the gem from Github :
 
@@ -53,7 +53,7 @@ Source :
     git clone git@github.com:superfeedr/superfeedr-ruby.git  
 
 
-== Example ==
+== Example
 
 Please see this {Gist}[http://gist.github.com/110247] while I am trying to find a way to integrate it into this document ;)
 

@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{superfeedr-ruby}
-  s.version = "0.1.0"
+  s.version = "0.2.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["julien Genestoux"]
-  s.date = %q{2009-05-11}
+  s.date = %q{2009-06-04}
   s.email = %q{julien.genestoux@gmail.com}
   s.extra_rdoc_files = [
     "LICENSE",
@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
     "lib/stanzas/subscriptions_query_stanza.rb",
     "lib/stanzas/unsubscribe_query_stanza.rb",
     "lib/superfeedr.rb",
+    "spec/spec.opts",
     "spec/spec_helper.rb",
     "spec/stanzas/iq_query_stanza_spec.rb",
     "spec/stanzas/notifications_stanza_spec.rb",
@@ -53,11 +54,14 @@ Gem::Specification.new do |s|
     s.specification_version = 2
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<babylon>, [">= 0"])
+      s.add_runtime_dependency(%q<julien51-babylon>, [">= 0"])
+      s.add_runtime_dependency(%q<nokogiri>, [">= 0"])
     else
-      s.add_dependency(%q<babylon>, [">= 0"])
+      s.add_dependency(%q<julien51-babylon>, [">= 0"])
+      s.add_dependency(%q<nokogiri>, [">= 0"])
     end
   else
-    s.add_dependency(%q<babylon>, [">= 0"])
+    s.add_dependency(%q<julien51-babylon>, [">= 0"])
+    s.add_dependency(%q<nokogiri>, [">= 0"])
   end
 end
