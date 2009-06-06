@@ -4,7 +4,7 @@ class IqQueryStanza
     @doc = Nokogiri::XML::Document.new
     @iq = Nokogiri::XML::Node.new("iq", @doc)
     @iq["type"] = params[:type].to_s
-    @iq["to"] = "firehoser.superfeedr.com"
+    @iq["to"] = Superfeedr.conf[:superfeedr_jid]
     @iq["id"] = "#{random_iq_id}"
     @iq["from"] = params[:from] if params[:from]
   end

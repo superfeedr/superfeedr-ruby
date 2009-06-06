@@ -6,6 +6,12 @@ require "stanzas/subscribe_query_stanza.rb"
 require "stanzas/unsubscribe_query_stanza.rb"
 require "stanzas/subscriptions_query_stanza.rb"
 
+
+##
+# By default, the log level is at error. You can change that at anytime in your app
+Babylon.logger.level = Log4r::ERROR
+
+
 ##
 # Based on the API documented there : http://superfeedr.com/documentation
 module Superfeedr
@@ -52,10 +58,43 @@ module Superfeedr
   end
   
   ##
-  # Subscribe to a feed. The block passed in argument will be called upon success. 
+  # Subscribes to the multiple feeds, one by one. Calls the block after each feed.
+  def self.subscribe(*feeds, &block)
+    return if feeds.flatten! == []
+    feed = feeds.shift
+    Superfeedr.add_feed(feed) do |result|
+      subscribe(feeds, &block)
+      block.call(result)
+    end
+  end
+  
+  ##
+  # Ubsubscribe to multiple feeds, one by one.  Calls the block after each feed.
+  def self.unsubscribe(*feeds, &block)
+    return if feeds.flatten! == []
+    feed = feeds.shift
+    Superfeedr.remove_feed(feed) do |result|
+      unsubscribe(feeds, &block)
+      block.call(result)
+    end
+  end
+  
+  ##
+  # List all subscriptions, by sending them by blocks (page), starting at page specified in argument
+  def self.subscriptions(start_page = 1, &block)
+    Superfeedr.subscriptions_by_page(start_page) do |result|
+      if !result.empty?
+        subscriptions(start_page + 1, &block)
+      end
+      block.call(result)
+    end
+  end
+  
+  ##
+  # Adds the url to the list of feeds you're monitoring. The block passed in argument will be called upon success. 
   # The block will take one boolen argument : true means everything went right... false means something failed! 
   # (Please set Babylon's log to Log4r::INFO for more info)
-  def self.subscribe(feed_url, &block)
+  def self.add_feed(feed_url, &block)
     raise NotConnected unless connection
     stanza = SubscribeQueryStanza.new({:node => feed_url, :from => connection.jid})
     @@callbacks[stanza.id] = Hash.new
@@ -68,7 +107,7 @@ module Superfeedr
   # Unsubscribe from a feed. The block passed in argument will be called upon success. 
   # The block will take one boolen argument  : true means everything went right... false means something failed! 
   # (Please set Babylon's log to Log4r::INFO for more info)
-  def self.unsubscribe(feed_url, &block)
+  def self.remove_feed(feed_url, &block)
     raise NotConnected unless connection
     stanza = UnsubscribeQueryStanza.new({:node => feed_url, :from => connection.jid})
     @@callbacks[stanza.id] = Hash.new
@@ -81,7 +120,7 @@ module Superfeedr
   # Lists the subscriptions by page. The block passed in argument will be called with 2 arguments : the page, 
   # and an array of the feed's url in the page you requested. 
   # (Currently the Superfeedr API only supports 30 feeds per page.)
-  def self.subscriptions(page = 1, &block)
+  def self.subscriptions_by_page(page = 1, &block)
     raise NotConnected unless connection
     stanza = SubscriptionsQueryStanza.new({:page => page, :from => connection.jid})
     @@callbacks[stanza.id] = Hash.new
@@ -159,5 +198,12 @@ module Superfeedr
       # Here we need to call the main notification callback!
     end
   end
+  
+  ##
+  # Config loaded from config.yaml
+  def self.conf
+    @@conf ||= YAML::load(File.read(File.dirname(__FILE__) + '/config.yaml'))
+  end
+  
   
 end
