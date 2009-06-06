@@ -64,7 +64,7 @@ module Superfeedr
     feed = feeds.shift
     Superfeedr.add_feed(feed) do |result|
       subscribe(feeds, &block)
-      block.call(result)
+      block.call(feed)
     end
   end
   
@@ -75,7 +75,7 @@ module Superfeedr
     feed = feeds.shift
     Superfeedr.remove_feed(feed) do |result|
       unsubscribe(feeds, &block)
-      block.call(result)
+      block.call(feed)
     end
   end
   
@@ -193,9 +193,11 @@ module Superfeedr
     if stanza["id"] && @@callbacks[stanza["id"]]
       @@callbacks[stanza["id"]][:method].call(stanza, &@@callbacks[stanza["id"]][:param])
       @@callbacks.delete(stanza["id"])
-    elsif stanza.name == "message" and stanza.at("event")["xmlns"] == "http://jabber.org/protocol/pubsub#event"
-      @@notication_callback.call(NotificationStanza.new(stanza))
-      # Here we need to call the main notification callback!
+    else
+      if stanza.name == "message" and stanza.at("event")
+        @@notication_callback.call(NotificationStanza.new(stanza))
+        # Here we need to call the main notification callback!
+      end
     end
   end
   
