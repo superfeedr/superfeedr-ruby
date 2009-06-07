@@ -9,6 +9,7 @@
 # - chunks (long entries might be notified in several chunks)
 # - chunk (current chunk out of chunks)
 #
+require "cgi"
 class Item
   include SAXMachine
   element :item, :as => :chunk, :value => :chunk
@@ -18,6 +19,10 @@ class Item
   element :link, :as => :link, :value => :href
   element :id, :as => :unique_id
   element :published
+  
+  def link
+    CGI.unescape(@link).gsub("\n", "")
+  end
   
   def published
     Time.parse(@published)
@@ -54,6 +59,10 @@ class NotificationStanza
   
   def http_status
     @http_status.to_i
+  end
+  
+  def feed_url
+    CGI.unescape(@feed_url).gsub("\n", "")
   end
   
   element :http, :as => :message_status
