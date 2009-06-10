@@ -82,11 +82,11 @@ module Superfeedr
   ##
   # List all subscriptions, by sending them by blocks (page), starting at page specified in argument
   def self.subscriptions(start_page = 1, &block)
-    Superfeedr.subscriptions_by_page(start_page) do |result|
+    Superfeedr.subscriptions_by_page(start_page) do |page, result|
       if !result.empty?
         subscriptions(start_page + 1, &block)
+        block.call(page, result)
       end
-      block.call(result)
     end
   end
   
@@ -139,8 +139,8 @@ module Superfeedr
   ##
   # Called with a response to a subscriptions listing
   def self.on_subscriptions(stanza, &block)
-    page = stanza.xpath('//xmlns:subscriptions', { 'xmlns' => 'http://jabber.org/protocol/pubsub' }).first["page"].to_i
-    feeds = stanza.xpath('//xmlns:subscription', { 'xmlns' => 'http://jabber.org/protocol/pubsub' }).map { |s| s["node"] }
+    page = stanza.xpath('//subscriptions').first["page"].to_i
+    feeds = stanza.xpath('//subscription').map { |s| s["node"] }
     block.call(page, feeds)
   end
   

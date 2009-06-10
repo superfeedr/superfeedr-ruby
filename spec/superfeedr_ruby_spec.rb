@@ -41,12 +41,12 @@ describe Superfeedr do
     it "should call subscriptions_by_page for each page as long as they're not empty" do
       def method_called_upon_page
       end
-      self.should_receive(:method_called_upon_page).exactly(4).times
+      self.should_receive(:method_called_upon_page).exactly(3).times
       3.times do |t|
-        Superfeedr.should_receive(:subscriptions_by_page).with(t+1).and_yield(["a", "b", "c"])
+        Superfeedr.should_receive(:subscriptions_by_page).with(t+1).and_yield( t+1 , ["a", "b", "c"])
       end
-      Superfeedr.should_receive(:subscriptions_by_page).with(4).and_yield([])      
-      Superfeedr.subscriptions do |result|
+      Superfeedr.should_receive(:subscriptions_by_page).with(4).and_yield(4, [])      
+      Superfeedr.subscriptions do |page, result|
         method_called_upon_page
       end
     end
@@ -219,8 +219,8 @@ EOXML
     it "should call the block with the page number and the list of feeds as an array" do
       xml = <<-EOXML
       <iq type="result" to="you@superfeedr.com/home" id="subman1" from="firehoser.superfeedr.com">
-        <pubsub xmlns="http://jabber.org/protocol/pubsub" xmlns:superfeedr="http://superfeedr.com/xmpp-pubsub-ext" >
-          <subscriptions superfeedr:page="3">
+        <pubsub>
+          <subscriptions page="3">
             <subscription node="http://domain.tld/path/to/a/feed/atom.xml" subscription="subscribed" jid="you@superfeedr.com" />
             <subscription node="http://domain2.tld/path/to/feed.rss" subscription="subscribed" jid="you@superfeedr.com" />
           </subscriptions>
