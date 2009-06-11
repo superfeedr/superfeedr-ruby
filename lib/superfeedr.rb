@@ -84,8 +84,8 @@ module Superfeedr
     Superfeedr.subscriptions_by_page(start_page) do |page, result|
       if !result.empty?
         subscriptions(start_page + 1, &block)
-        block.call(page, result)
       end
+      block.call(page, result)
     end
   end
   
@@ -194,7 +194,7 @@ module Superfeedr
       @@callbacks.delete(stanza["id"])
     else
       if stanza.name == "message" and stanza.at("event")
-        @@notication_callback.call(NotificationStanza.new(stanza))
+        @@notication_callback.call(NotificationStanza.new(stanza)) if @@notification_callback
         # Here we need to call the main notification callback!
       end
     end

@@ -39,7 +39,7 @@ describe Superfeedr do
     it "should call subscriptions_by_page for each page as long as they're not empty" do
       def method_called_upon_page
       end
-      self.should_receive(:method_called_upon_page).exactly(3).times
+      self.should_receive(:method_called_upon_page).exactly(4).times
       3.times do |t|
         Superfeedr.should_receive(:subscriptions_by_page).with(t+1).and_yield( t+1 , ["a", "b", "c"])
       end
