@@ -14,11 +14,10 @@ describe Superfeedr do
   
   
   describe "subscribe" do
-    it "should call add_feed with feeds supplied" do
-      feeds = "a", "b", "c", "d"
-      feeds.each do |feed|
-        Superfeedr.should_receive(:add_feed).with(feed).and_yield(true)
-      end
+    it "should call add_feeds with feeds supplied" do
+      feeds = ["a"] * 50 
+      Superfeedr.should_receive(:add_feeds).with(["a"] * 30).and_yield(true)
+      Superfeedr.should_receive(:add_feeds).with(["a"] * 20).and_yield(true)
       Superfeedr.subscribe(feeds) do |result|
         result.should be_true
       end
@@ -26,11 +25,10 @@ describe Superfeedr do
   end
   
   describe "unsubscribe" do
-    it "should call remove_feed with feeds supplied" do
-      feeds = "a", "b", "c", "d"
-      feeds.each do |feed|
-        Superfeedr.should_receive(:remove_feed).with(feed).and_yield(true)
-      end
+    it "should call remove_feeds with feeds supplied" do
+      feeds = ["a"] * 40 
+      Superfeedr.should_receive(:remove_feeds).with(["a"] * 30).and_yield(true)
+      Superfeedr.should_receive(:remove_feeds).with(["a"] * 10).and_yield(true)
       Superfeedr.unsubscribe(feeds) do |result|
         result.should be_true
       end
@@ -53,7 +51,7 @@ describe Superfeedr do
   end
   
   
-  describe "add_feed" do
+  describe "add_feeds" do
     before(:each) do
       Superfeedr.stub!(:connection).and_return(@mock_connection)
       Superfeedr.stub!(:send).and_return(true)
@@ -68,35 +66,35 @@ describe Superfeedr do
     it "should raise an error if not connected" do
       Superfeedr.should_receive(:connection).and_return(nil)
       lambda {
-        Superfeedr.add_feed(@node, &@block)
+        Superfeedr.add_feeds(@node, &@block)
       }.should raise_error(Superfeedr::NotConnected)
     end
       
     it "should create a new SubscribeQueryStanza with the right url" do
-      SubscribeQueryStanza.should_receive(:new).with({:node => @node, :from => @mock_connection.jid}).and_return(@mock_stanza)
-      Superfeedr.add_feed(@node, &@block)
+      SubscribeQueryStanza.should_receive(:new).with({:nodes => @node, :from => @mock_connection.jid}).and_return(@mock_stanza)
+      Superfeedr.add_feeds(@node, &@block)
     end
     
     it "should add a Proc that just calls the block in params to the @@callbacks" do
-      Superfeedr.add_feed(@node, &@block)
+      Superfeedr.add_feeds(@node, &@block)
       Superfeedr.callbacks[@mock_stanza.id][:method].should == Superfeedr.method(:on_subscribe)
       Superfeedr.callbacks[@mock_stanza.id][:param].should == @block
     end
     
     it "should send the stanza"  do
       Superfeedr.should_receive(:send).with(@mock_stanza).and_return(true)
-      Superfeedr.add_feed(@node, &@block)
+      Superfeedr.add_feeds(@node, &@block)
     end
   end
   
-  describe "remove_feed" do
+  describe "remove_feeds" do
     before(:each) do
       Superfeedr.stub!(:connection).and_return(@mock_connection)
       Superfeedr.stub!(:send).and_return(true)
       @block = Proc.new {
         
       }
-      @node = "http://domain.com/feed.xml"
+      @nodes = ["http://domain.com/feed.xml"]
       @mock_stanza = mock(UnsubscribeQueryStanza, {:id => "123"})
       UnsubscribeQueryStanza.stub!(:new).and_return(@mock_stanza)
     end
@@ -104,24 +102,24 @@ describe Superfeedr do
     it "should raise an error if not connected" do
       Superfeedr.should_receive(:connection).and_return(nil)
       lambda {
-        Superfeedr.remove_feed(@node, &@block)
+        Superfeedr.remove_feeds(@nodes, &@block)
       }.should raise_error(Superfeedr::NotConnected)
     end
       
     it "should create a new SubscribeQueryStanza with the right url" do
-      UnsubscribeQueryStanza.should_receive(:new).with({:node => @node, :from => @mock_connection.jid}).and_return(@mock_stanza)
-      Superfeedr.remove_feed(@node, &@block)
+      UnsubscribeQueryStanza.should_receive(:new).with({:nodes => @nodes, :from => @mock_connection.jid}).and_return(@mock_stanza)
+      Superfeedr.remove_feeds(@nodes, &@block)
     end
     
     it "should add a Proc that just calls the block in params to the @@callbacks" do
-      Superfeedr.remove_feed(@node, &@block)
+      Superfeedr.remove_feeds(@nodes, &@block)
       Superfeedr.callbacks[@mock_stanza.id][:method].should == Superfeedr.method(:on_unsubscribe)
       Superfeedr.callbacks[@mock_stanza.id][:param].should == @block
     end
     
     it "should send the stanza"  do
       Superfeedr.should_receive(:send).with(@mock_stanza).and_return(true)
-      Superfeedr.remove_feed(@node, &@block)
+      Superfeedr.remove_feeds(@nodes, &@block)
     end
   end
   
@@ -221,7 +219,7 @@ EOXML
       <iq type="result" to="you@superfeedr.com/home" id="subman1" from="firehoser.superfeedr.com">
         <pubsub>
           <subscriptions page="3">
-            <subscription node="http://domain.tld/path/to/a/feed/atom.xml" subscription="subscribed" jid="you@superfeedr.com" />
+            <subscription node="http://domain.tld/path/to/a/feed/atom.xml&amp;toto=tutu" subscription="subscribed" jid="you@superfeedr.com" />
             <subscription node="http://domain2.tld/path/to/feed.rss" subscription="subscribed" jid="you@superfeedr.com" />
           </subscriptions>
         </pubsub>
@@ -230,7 +228,7 @@ EOXML
       stanza = Nokogiri::XML(xml) 
       Superfeedr.on_subscriptions(stanza.root) do |page, subscriptions|
         page.should == 3
-        subscriptions.should == ["http://domain.tld/path/to/a/feed/atom.xml", "http://domain2.tld/path/to/feed.rss"] 
+        subscriptions.should == ["http://domain.tld/path/to/a/feed/atom.xml&toto=tutu", "http://domain2.tld/path/to/feed.rss"] 
       end
     end
     
