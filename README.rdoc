@@ -62,7 +62,7 @@ Please see this {Gist}[http://gist.github.com/110247] while I am trying to find 
 
 {Babylon}[http://github.com/julien51/babylon/tree/master] : please note that there are 2 gems named Baylon. The one you want is the one about XMPP, you can get it with :
     
-    sudo gem install babylon-julien51
+    sudo gem install julien51-babylon
 
 == Copyright
 
