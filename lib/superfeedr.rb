@@ -20,7 +20,7 @@ module Superfeedr
   @@connection = nil
   @@callbacks = {}
   @@connection_callback = nil
-  @@notication_callback = nil
+  @@notification_callback = nil
   
   ##
   # Connects your client to the Superfeedr.com XMPP server. You need to pass the following arguments :
@@ -31,6 +31,7 @@ module Superfeedr
   # ["app_type" : (client | component) only useful if you use an external jid ]
   # The optional block will be called upon connection.
   def self.connect(jid, password, host = nil, port = nil, app_type = "client", &block)
+
     params = {
       "jid" => jid,
       "password" => password,
@@ -132,7 +133,7 @@ module Superfeedr
   # Specifies the block that will be called upon notification. 
   # Your block should take a NotificationStanza instance argument.
   def self.on_notification(&block)
-    @@notication_callback = block
+    @@notification_callback = block
   end
   
   ##
@@ -194,7 +195,7 @@ module Superfeedr
       @@callbacks.delete(stanza["id"])
     else
       if stanza.name == "message" and stanza.at("event")
-        @@notication_callback.call(NotificationStanza.new(stanza)) if defined?(@@notification_callback) && @@notification_callback
+        @@notification_callback.call(NotificationStanza.new(stanza)) if @@notification_callback
         # Here we need to call the main notification callback!
       end
     end
