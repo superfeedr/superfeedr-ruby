@@ -43,10 +43,9 @@ Yes, the gem is called superfeedr-ruby, but the library is superfeedr only ;)
 
 == Install
 
-Install the gem from Github :
+Install the gem from Gemcutter :
 
-    gem sources -a http://gems.github.com
-    sudo gem install superfeedr-superfeedr-ruby
+    sudo gem install superfeedr-ruby
 
 Source : 
     
