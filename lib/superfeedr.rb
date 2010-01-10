@@ -1,5 +1,4 @@
-require "babylon"
-require "nokogiri"
+require "skates"
 require "stanzas/iq_query_stanza.rb"
 require "stanzas/notification_stanza.rb"
 require "stanzas/subscribe_query_stanza.rb"
@@ -58,24 +57,24 @@ module Superfeedr
   end
   
   ##
-  # Subscribes to the multiple feeds, 30 by 30. Calls the block after each feed.
+  # Subscribes to the multiple feeds, 30 by 30. Calls the block after each set of 30 feeds.
   def self.subscribe(*feeds, &block)
     return if feeds.flatten! == []
     subset = feeds.slice!(0..29)
     Superfeedr.add_feeds(subset) do |result|
       subscribe(feeds, &block)
-      block.call(subset)
+      block.call(subset) 
     end
   end
   
   ##
-  # Ubsubscribe to multiple feeds, one by one.  Calls the block after each feed.
+  # Ubsubscribe to multiple feeds, one by one.  Calls the block after each set of 30 feeds.
   def self.unsubscribe(*feeds, &block)
     return if feeds.flatten! == []
     subset = feeds.slice!(0..29)
     Superfeedr.remove_feeds(subset) do |result|
       unsubscribe(feeds, &block)
-      block.call(subset)
+      block.call(subset) 
     end
   end
   

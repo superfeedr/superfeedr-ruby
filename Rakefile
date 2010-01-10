@@ -13,7 +13,7 @@ begin
     gem.homepage = "http://github.com/julien51/superfeedr-ruby"
     gem.authors = ["julien Genestoux"]
     gem.rubyforge_project = "superfeedr-ruby"
-    gem.add_dependency('julien51-babylon')
+    gem.add_dependency('skates')
     gem.add_dependency('nokogiri')
     gem.has_rdoc = true
     gem.homepage = 'http://github.com/julien51/superfeedr-ruby/'
