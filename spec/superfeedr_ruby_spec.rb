@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/spec_helper'
 describe Superfeedr do
   
   before(:each) do
-    @mock_connection = mock(Babylon::XmppConnection, {:send_xml => true, :jid => "client@server.tld/resource"})
+    @mock_connection = mock(Skates::XmppConnection, {:send_xml => true, :jid => "client@server.tld/resource"})
   end
   
   describe "connect" do

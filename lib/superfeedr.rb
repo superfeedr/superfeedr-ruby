@@ -7,8 +7,7 @@ require "stanzas/subscriptions_query_stanza.rb"
 
 ##
 # By default, the log level is at error. You can change that at anytime in your app
-Babylon.logger.level = Log4r::ERROR
-
+Skates.logger.level = Log4r::ERROR
 
 ##
 # Based on the API documented there : http://superfeedr.com/documentation
@@ -41,9 +40,9 @@ module Superfeedr
     
     run = Proc.new {
       if app_type == "client"
-        Babylon::ClientConnection.connect(params, self) 
+        Skates::ClientConnection.connect(params, self) 
       else 
-        Babylon::ComponentConnection.connect(params, self) 
+        Skates::ComponentConnection.connect(params, self) 
       end          
     }
     
@@ -92,7 +91,7 @@ module Superfeedr
   ##
   # Adds the url to the list of feeds you're monitoring. The block passed in argument will be called upon success. 
   # The block will take one boolen argument : true means everything went right... false means something failed! 
-  # (Please set Babylon's log to Log4r::INFO for more info)
+  # (Please set Skates's log to Log4r::INFO for more info)
   def self.add_feeds(feeds_url, &block)
     raise NotConnected unless connection
     stanza = SubscribeQueryStanza.new({:nodes => feeds_url, :from => connection.jid})
@@ -105,7 +104,7 @@ module Superfeedr
   ## 
   # Unsubscribe from a feed. The block passed in argument will be called upon success. 
   # The block will take one boolen argument  : true means everything went right... false means something failed! 
-  # (Please set Babylon's log to Log4r::INFO for more info)
+  # (Please set Skates's log to Log4r::INFO for more info)
   def self.remove_feeds(feeds_url, &block)
     raise NotConnected unless connection
     stanza = UnsubscribeQueryStanza.new({:nodes => feeds_url, :from => connection.jid})
