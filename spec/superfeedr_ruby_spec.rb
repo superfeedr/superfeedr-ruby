@@ -217,8 +217,8 @@ EOXML
     it "should call the block with the page number and the list of feeds as an array" do
       xml = <<-EOXML
       <iq type="result" to="you@superfeedr.com/home" id="subman1" from="firehoser.superfeedr.com">
-        <pubsub>
-          <subscriptions page="3">
+        <pubsub xmlns:superfeedr='http://superfeedr.com/xmpp-pubsub-ext' xmlns='http://jabber.org/protocol/pubsub'>
+          <subscriptions superfeedr:page="3">
             <subscription node="http://domain.tld/path/to/a/feed/atom.xml&amp;toto=tutu" subscription="subscribed" jid="you@superfeedr.com" />
             <subscription node="http://domain2.tld/path/to/feed.rss" subscription="subscribed" jid="you@superfeedr.com" />
           </subscriptions>

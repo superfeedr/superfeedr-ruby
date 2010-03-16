@@ -137,8 +137,12 @@ module Superfeedr
   ##
   # Called with a response to a subscriptions listing
   def self.on_subscriptions(stanza, &block)
-    page = stanza.xpath('//subscriptions').first["page"].to_i
-    feeds = stanza.xpath('//subscription').map { |s| CGI.unescapeHTML(s["node"]) }
+    xmlns = {
+      'pubsub' => 'http://jabber.org/protocol/pubsub',
+      'superfeedr' => 'http://superfeedr.com/xmpp-pubsub-ext'
+    }
+    page = stanza.xpath('//pubsub:subscriptions/@superfeedr:page', xmlns).to_s.to_i
+    feeds = stanza.xpath('//pubsub:subscription', xmlns).map { |s| CGI.unescapeHTML(s["node"]) }
     block.call(page, feeds)
   end
   
