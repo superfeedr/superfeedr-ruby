@@ -9,31 +9,177 @@
 # - chunks (long entries might be notified in several chunks)
 # - chunk (current chunk out of chunks)
 #
-require "cgi"
-class Item
-  include SAXMachine
-  element :item, :as => :chunk, :value => :chunk
-  element :item, :as => :chunks, :value => :chunks
-  element :title
-  element :summary
-  element :link, :as => :link, :value => :href
-  element :id, :as => :unique_id
-  element :published
+# <item xmlns="http://jabber.org/protocol/pubsub" chunks="2" chunk="1">
+#     <entry xmlns="http://www.w3.org/2005/Atom" xml:lang="">
+#         <title>cool</title>
+#         <content type="text">cool</content>
+#         <id>tag:pubhubsubbub-example-app,2009:ahhwdWJzdWJodWJidWItZXhhbXBsZS1hcHByDQsSBUVudHJ5GMGOEAw</id>
+#         <published>2010-03-25T16:57:18Z</published>
+#         <link type="text/html" href="http://pubsubhubbub-example-app.appspot.com/ahhwdWJzdWJodWJidWItZXhhbXBsZS1hcHByDQsSBUVudHJ5GMGOEAw" title="" rel="alternate"/>
+#     </entry>
+# </item>
+
+class Link
+  def initialize(node)
+    @node = node
+  end
   
-  def link
-    CGI.unescape(@link).gsub("\n", "")
+  def title
+    @node["title"]
+  end
+  
+  def href
+    @node["href"]
+  end
+  
+  def rel
+    @node["rel"]
+  end
+  
+  def type
+    @node["type"]
+  end
+  
+end
+
+class Author
+  def initialize(node)
+    @node = node
+  end
+  
+  def name
+    if !@name
+      if name = @node.at_xpath("./atom:name", {"atom" => "http://www.w3.org/2005/Atom"})
+        @name = name.text
+      end
+    end
+  end
+  
+  def uri
+    if !@uri
+      if uri = @node.at_xpath("./atom:uri", {"atom" => "http://www.w3.org/2005/Atom"})
+        @uri = uri.text
+      end
+    end
+  end
+  
+  def email
+    if !@email
+      if email = @node.at_xpath("./atom:email", {"atom" => "http://www.w3.org/2005/Atom"})
+        @email = email.text
+      end
+    end
+  end
+  
+end
+
+class Category
+  def initialize(node)
+    @node = node
+  end
+  
+  def term
+    @node["term"]
+  end
+end
+
+class Location
+  def initialize(node)
+    @node = node
+  end
+  
+  def point
+    @point ||= @node.text
+  end
+  
+  def lat
+    @lat ||= point.split().first.to_f
+  end
+  
+  def lon
+    @lon ||= point.split().last.to_f
+  end
+  
+end
+
+class Item
+  
+  def initialize(node)
+    @node = node
+  end
+  
+  def title
+    @title ||= @node.at_xpath("./atom:entry/atom:title", {"atom" => "http://www.w3.org/2005/Atom"}).text
+  end
+  
+  def summary
+    if !@summary
+      if summary = @node.at_xpath("./atom:entry/atom:summary", {"atom" => "http://www.w3.org/2005/Atom"})
+        @summary = summary.text
+      end
+    end
+    @summary
+  end
+
+  def unique_id
+    @unique_id ||= @node.at_xpath("./atom:entry/atom:id", {"atom" => "http://www.w3.org/2005/Atom"}).text
   end
   
   def published
-    Time.parse(@published)
+    if !@published
+      if published = @node.at_xpath("./atom:entry/atom:published", {"atom" => "http://www.w3.org/2005/Atom"}).text
+        @published = Time.parse(published)
+      end
+    end
+    @published
   end
   
   def chunks
-    @chunks.to_i
+    @node["chunks"].to_i
   end
   
   def chunk
-    @chunk.to_i
+    @node["chunk"].to_i
+  end
+  
+  def links
+    if !@links
+      @links = []
+      @node.xpath("./atom:entry/atom:link", {"atom" => "http://www.w3.org/2005/Atom"}).each do |node|
+        @links.push(Link.new(node))
+      end
+    end
+    @links
+  end
+
+  def authors
+    if !@authors
+      @authors = []
+      @node.xpath("./atom:entry/atom:author", {"atom" => "http://www.w3.org/2005/Atom"}).each do |node|
+        @authors.push(Author.new(node))
+      end
+    end
+    @authors
+  end
+
+  def categories
+    if !@categories
+      @categories = []
+      @node.xpath("./atom:entry/atom:category", {"atom" => "http://www.w3.org/2005/Atom"}).each do |node|
+        @categories.push(Category.new(node))
+      end
+    end
+    @categories
+  end
+
+  def locations
+    if !@locations
+      @locations = []
+      @node.xpath("./atom:entry/georss:point", {"atom" => "http://www.w3.org/2005/Atom", "georss" => "http://www.georss.org/georss"}).each do |node|
+        @locations.push(Location.new(node))
+      end
+    end
+    @locations
   end
   
 end
@@ -46,30 +192,67 @@ end
 # - feed_url : url of the feed
 # - next_fetch : Time when the feed will be fetched again (this is purely informative and it might change)
 # - items : array of new items detected (might be empty)
-class NotificationStanza
-  include SAXMachine
-  
-  def initialize(xml)
-    parse(xml.to_s)
-  end
+#
+# 
+# <message xmlns="jabber:client" from="firehoser.superfeedr.com" to="julien@superfeedr.com">
+#   <event xmlns="http://jabber.org/protocol/pubsub#event">
+#     <status xmlns="http://superfeedr.com/xmpp-pubsub-ext" feed="http://pubsubhubbub-example-app.appspot.com/feed">
+#       <http code="200">25002 bytes fetched in 0.73s for 1 new entries.</http>
+#       <next_fetch>2010-03-25T17:06:30+00:00</next_fetch>
+#       <title>PubSubHubBub example app</title>
+#     </status>
+#     <items node="http://pubsubhubbub-example-app.appspot.com/feed">
+#       <item xmlns="http://jabber.org/protocol/pubsub" chunks="1" chunk="1">
+#         <entry xmlns="http://www.w3.org/2005/Atom" xml:lang="" xmlns:xml="http://www.w3.org/XML/1998/namespace">
+#           <title>cool</title>
+#           <content type="text">cool</content>
+#           <id>tag:pubhubsubbub-example-app,2009:ahhwdWJzdWJodWJidWItZXhhbXBsZS1hcHByDQsSBUVudHJ5GMGOEAw</id>
+#           <published>2010-03-25T16:57:18Z</published>
+#           <link type="text/html" href="http://pubsubhubbub-example-app.appspot.com/ahhwdWJzdWJodWJidWItZXhhbXBsZS1hcHByDQsSBUVudHJ5GMGOEAw" title="" rel="alternate"/>
+#         </entry>
+#         <entry xmlns="http://www.w3.org/2005/Atom" xml:lang="" xmlns:xml="http://www.w3.org/XML/1998/namespace">
+#           <title>great</title>
+#           <content type="text">great</content>
+#           <id>tag:pubhubsubbub-example-app,2009:ahhwdWJzdWJodWJidWItZXhhbXBsZS1hcHByDQsSBUVudHJ5GMGOEAx</id>
+#           <published>2010-03-25T16:57:19Z</published>
+#           <link type="text/html" href="http://pubsubhubbub-example-app.appspot.com/ahhwdWJzdWJodWJidWItZXhhbXBsZS1hcHByDQsSBUVudHJ5GMGOEAx" title="" rel="alternate"/>
+#         </entry>
+#       </item>
+#     </items>
+#   </event>
+# </message>
+
+class NotificationStanza < Skates::Base::Stanza 
   
   def next_fetch
-    Time.parse(@next_fetch)
+    if !@next_fetch
+      time = @node.at_xpath("./ps:event/sf:status/sf:next_fetch", {"ps" => "http://jabber.org/protocol/pubsub#event", "sf" => "http://superfeedr.com/xmpp-pubsub-ext"}).text
+      @next_fetch = Time.parse(time)
+    end
+    @next_fetch
   end
   
   def http_status
-    @http_status.to_i
+    @http_status ||= @node.at_xpath("./ps:event/sf:status/sf:http/@code", {"ps" => "http://jabber.org/protocol/pubsub#event", "sf" => "http://superfeedr.com/xmpp-pubsub-ext"}).text.to_i
   end
   
   def feed_url
-    CGI.unescape(@feed_url).gsub("\n", "")
+    @feed_url ||= @node.at_xpath("./ps:event/sf:status/@feed", {"ps" => "http://jabber.org/protocol/pubsub#event", "sf" => "http://superfeedr.com/xmpp-pubsub-ext"}).text
   end
   
-  element :http, :as => :message_status
-  element :http, :as => :http_status, :value => :code
-  element :status, :value => :feed, :as => :feed_url
-  element :next_fetch
-  elements :item, :as => :entries, :class => Item
+  def message_status
+    @message_status ||= @node.at_xpath("./ps:event/sf:status/sf:http", {"ps" => "http://jabber.org/protocol/pubsub#event", "sf" => "http://superfeedr.com/xmpp-pubsub-ext"}).text
+  end
+  
+  def entries
+    if !@entries
+      @entries = []
+      @node.xpath("./ps:event/ps:items/ps2:item", {"ps" => "http://jabber.org/protocol/pubsub#event", "ps2" => "http://jabber.org/protocol/pubsub"}).each do |node|
+        @entries.push(Item.new(node))
+      end
+    end
+    @entries
+  end
   
 end
 
