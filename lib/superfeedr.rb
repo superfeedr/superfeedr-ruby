@@ -196,7 +196,7 @@ module Superfeedr
       @@callbacks[stanza["id"]][:method].call(stanza, &@@callbacks[stanza["id"]][:param])
       @@callbacks.delete(stanza["id"])
     else
-      if stanza.name == "message" and stanza.at("event")
+      if stanza.name == "message" and !stanza.xpath("./ps:event", {"ps" => "http://jabber.org/protocol/pubsub#event"}).empty?
         @@notification_callback.call(NotificationStanza.new(stanza)) if @@notification_callback
         # Here we need to call the main notification callback!
       end
