@@ -223,31 +223,40 @@ end
 # </message>
 
 class NotificationStanza < Skates::Base::Stanza 
+
+  XMLNS = {
+    "ps" => "http://jabber.org/protocol/pubsub#event",
+    "ps2" => "http://jabber.org/protocol/pubsub",
+    "sf" => "http://superfeedr.com/xmpp-pubsub-ext" } unless defined? XMLNS
   
   def next_fetch
     if !@next_fetch
-      time = @node.at_xpath("./ps:event/sf:status/sf:next_fetch", {"ps" => "http://jabber.org/protocol/pubsub#event", "sf" => "http://superfeedr.com/xmpp-pubsub-ext"}).text
+      time = @node.at_xpath("./ps:event/sf:status/sf:next_fetch", XMLNS).text
       @next_fetch = Time.parse(time)
     end
     @next_fetch
   end
   
   def http_status
-    @http_status ||= @node.at_xpath("./ps:event/sf:status/sf:http/@code", {"ps" => "http://jabber.org/protocol/pubsub#event", "sf" => "http://superfeedr.com/xmpp-pubsub-ext"}).text.to_i
+    @http_status ||= @node.at_xpath("./ps:event/sf:status/sf:http/@code", XMLNS).text.to_i
   end
   
   def feed_url
-    @feed_url ||= @node.at_xpath("./ps:event/sf:status/@feed", {"ps" => "http://jabber.org/protocol/pubsub#event", "sf" => "http://superfeedr.com/xmpp-pubsub-ext"}).text
+    @feed_url ||= @node.at_xpath("./ps:event/sf:status/@feed", XMLNS).text
   end
   
   def message_status
-    @message_status ||= @node.at_xpath("./ps:event/sf:status/sf:http", {"ps" => "http://jabber.org/protocol/pubsub#event", "sf" => "http://superfeedr.com/xmpp-pubsub-ext"}).text
+    @message_status ||= @node.at_xpath("./ps:event/sf:status/sf:http", XMLNS).text
+  end
+
+  def title
+    @title ||= @node.at_xpath("./ps:event/sf:status/sf:title", XMLNS).text
   end
   
   def entries
     if !@entries
       @entries = []
-      @node.xpath("./ps:event/ps:items/ps2:item", {"ps" => "http://jabber.org/protocol/pubsub#event", "ps2" => "http://jabber.org/protocol/pubsub"}).each do |node|
+      @node.xpath("./ps:event/ps:items/ps2:item", XMLNS).each do |node|
         @entries.push(Item.new(node))
       end
     end

@@ -57,8 +57,12 @@ describe NotificationStanza do
     @stanza.http_status.should == 200
   end
   
-  it "should have the have the right next_fetch" do
+  it "should have the right next_fetch" do
     @stanza.next_fetch.should == Time.parse("2010-03-25T17:06:30+00:00")
+  end
+
+  it "should have the title" do
+    @stanza.title.should == 'PubSubHubBub example app'
   end
   
   it "should have the right number of items" do
