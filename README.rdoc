@@ -54,8 +54,11 @@ Source :
 
 == Example
 
-Please see this {Gist}[http://gist.github.com/110247] while I am trying to find a way to integrate it into this document ;)
+Create a directory called superfeedr-example. In the superfeedr-example directory create a file called example.rb and copy the code from the gist below into that file. Replace "demo@superfeedr.com" with "your-username@superfeedr.com" and replace the "*******" with your Superfeedr password. Next, create a directory called log in the superfeedr-example directory. Finally, run it with:
 
+    ruby example.rb
+
+Example code: {Gist}[http://gist.github.com/110247]
 
 == REQUIREMENTS:
 
