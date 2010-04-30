@@ -19,6 +19,8 @@
 #     </entry>
 # </item>
 
+require 'time'
+
 class Link
   def initialize(node)
     @node = node
