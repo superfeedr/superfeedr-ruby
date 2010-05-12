@@ -123,6 +123,15 @@ class Item
     @summary
   end
 
+  def content
+    if !@content
+      if content = @node.at_xpath("./atom:entry/atom:summary", {"atom" => "http://www.w3.org/2005/Atom"})
+        @content = content.text
+      end
+    end
+    @content
+  end
+
   def unique_id
     @unique_id ||= @node.at_xpath("./atom:entry/atom:id", {"atom" => "http://www.w3.org/2005/Atom"}).text
   end
