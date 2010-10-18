@@ -125,7 +125,7 @@ class Item
 
   def content
     if !@content
-      if content = @node.at_xpath("./atom:entry/atom:summary", {"atom" => "http://www.w3.org/2005/Atom"})
+      if content = @node.at_xpath("./atom:entry/atom:content", {"atom" => "http://www.w3.org/2005/Atom"})
         @content = content.text
       end
     end
