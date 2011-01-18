@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'rake'
+require 'yaml'
 
 begin
   require 'jeweler'
@@ -14,7 +15,6 @@ begin
     gem.authors = ["julien Genestoux"]
     gem.rubyforge_project = "superfeedr-ruby"
     gem.add_dependency('skates')
-    gem.add_dependency('nokogiri')
     gem.has_rdoc = true
     gem.homepage = 'http://github.com/julien51/superfeedr-ruby/'
     gem.files =  FileList["[A-Z]*", "{bin,generators,lib,test,spec}/**/*"]

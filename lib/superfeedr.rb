@@ -1,4 +1,5 @@
 require "skates"
+require "yaml"
 require "stanzas/iq_query_stanza.rb"
 require "stanzas/notification_stanza.rb"
 require "stanzas/subscribe_query_stanza.rb"
